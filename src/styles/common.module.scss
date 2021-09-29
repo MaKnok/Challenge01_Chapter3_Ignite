@@ -1,1 +1,27 @@
-// TODO
+.infoContainer{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  margin-top: 1.5rem;
+}
+
+.infoContent{
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+
+  & + .infoContent{
+    margin-left: 1.5rem;
+  }
+
+}
+
+
+.timeStyle, .authorStyle, .readingTimeStyle{
+  font: 400 0.875rem "Inter", sans-serif;
+  color: var(--gray-300);
+  margin-left: 0.5rem;
+}
+
+
+

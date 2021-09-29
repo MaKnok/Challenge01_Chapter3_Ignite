@@ -1,1 +1,61 @@
-// TODO
+.contentContainer{
+  max-width: 900px; 
+  margin: 4.971875rem 0 0 23.25rem;
+
+  img{
+    margin-bottom: 4.05125rem;
+  }
+
+  section{
+
+    margin-bottom:4rem;
+
+    p{
+      margin-top: 0.375rem;
+    }
+
+  }
+
+}
+
+.posts{
+  max-width:700px;
+
+  strong{
+    font: 700 1.75rem "Inter", sans-serif;
+    color: var(--gray-30);
+    cursor: pointer;
+  }
+
+  p{
+    color: var(--gray-200);
+    font: 400 1.125rem "Inter", sans-serif;
+    line-height:1.361rem;
+  }
+
+  a{
+    display:block;
+    text-decoration: none;
+
+    & + a{
+      margin-top: 3rem;
+    }
+  }
+}
+
+.morePosts{
+    font: 600 1.125rem "Inter", sans-serif;
+    color: var(--pink-500);
+    cursor: pointer;
+    background-color: transparent;
+    border-width: 0;
+}
+
+
+
+
+  
+
+
+
+

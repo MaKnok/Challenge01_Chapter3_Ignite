@@ -1,1 +1,26 @@
-// TODO
+
+.post {
+  max-width: 721px;
+  margin: 0 auto;
+  padding: 5rem 0;
+}
+
+.contentContainer {
+  margin-top: 4rem;
+  list-style-type: none;
+}
+
+.postContentBody {
+  margin-top: 3.75rem;
+  
+  p, ul, li{
+    margin: 2.25rem 0;
+    list-style-type: disc;
+    text-align: justify;
+  }
+
+  a{
+    color: var(--pink-500);
+    text-decoration: none;
+  }
+}

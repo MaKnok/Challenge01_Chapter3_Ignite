@@ -23,7 +23,7 @@
     "**/*.ts",
     "**/*.tsx",
     "**/*.spec.tsx"
-  ],
+, "prismic-configuration.js", "prismic-configuration.js"  ],
   "exclude": [
     "node_modules"
   ]
