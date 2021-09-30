@@ -38,7 +38,7 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const [posts, setPosts] = useState(postsPagination.results);
-  const [nextPage, setNextPage] = useState([]);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
   const formattedPosts = posts.map(post => {
     return {
