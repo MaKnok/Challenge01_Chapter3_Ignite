@@ -11,12 +11,15 @@ import { FiClock } from 'react-icons/fi';
 
 import { RichText } from 'prismic-dom';
 import { unlink } from 'fs';
+import { useUtterances } from '../../hooks/useUtterances';
 import { getPrismicClient } from '../../services/prismic';
 
 import Header from '../../components/Header';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+
+const commentNodeId = 'comments';
 
 interface Post {
   first_publication_date: string | null;
@@ -48,6 +51,8 @@ interface PostProps {
 export default function Post({ post }: PostProps): JSX.Element {
   const { content } = post.data;
   const router = useRouter();
+
+  useUtterances(commentNodeId);
 
   if (router.isFallback) {
     return <div>Carregando...</div>;
@@ -183,6 +188,9 @@ export default function Post({ post }: PostProps): JSX.Element {
           </ul>
         </article>
       </main>
+      <footer>
+        <div id={commentNodeId} />
+      </footer>
     </>
   );
 }
