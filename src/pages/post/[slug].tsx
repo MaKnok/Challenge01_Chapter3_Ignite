@@ -1,5 +1,7 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { useRouter } from 'next/router';
@@ -23,6 +25,8 @@ const commentNodeId = 'comments';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
+  last_publication_hour: string | null;
   data: {
     title: string;
     banner: {
@@ -44,12 +48,65 @@ interface Post {
   };
 }
 
-interface PostProps {
-  post: Post;
+// create an interface for single neighbor post
+interface NeighborPost {
+  title: string;
+  slug: string;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
-  const { content } = post.data;
+// create an interface for neighbor posts, defining prev and next
+interface NeighborsPosts {
+  prevPost: NeighborPost;
+  nextPost: NeighborPost;
+}
+
+interface PostProps {
+  post: Post;
+  neighborsPosts: NeighborsPosts;
+  preview: boolean;
+}
+
+export default function Post({
+  post,
+  neighborsPosts,
+  preview,
+}: PostProps): JSX.Element {
+  // initialize next post, it initializes in title:'', slug:''
+  const [nextPost, setNextPost] = useState<NeighborPost | false>({
+    title: '',
+    slug: '',
+  });
+
+  // initialize prev post, it initializes in title:'', slug:''
+  const [prevPost, setPrevPost] = useState<NeighborPost | false>({
+    title: '',
+    slug: '',
+  });
+
+  function loadNeighborsPosts(): void {
+    if (neighborsPosts.nextPost) {
+      setNextPost({
+        title: neighborsPosts.nextPost.title,
+        slug: neighborsPosts.nextPost.slug,
+      });
+    } else {
+      setNextPost(false);
+    }
+
+    if (neighborsPosts.prevPost) {
+      setPrevPost({
+        title: neighborsPosts.prevPost.title,
+        slug: neighborsPosts.prevPost.slug,
+      });
+    } else {
+      setPrevPost(false);
+    }
+  }
+
+  useEffect(() => {
+    loadNeighborsPosts();
+  }, [post]);
+
   const router = useRouter();
 
   useUtterances(commentNodeId);
@@ -57,6 +114,13 @@ export default function Post({ post }: PostProps): JSX.Element {
   if (router.isFallback) {
     return <div>Carregando...</div>;
   }
+
+  // it loads the next or previous neighbors posts only if they exist
+
+  // execute the function loadNeighborPosts() everytime the array[post] has it's
+  // current index updated.
+
+  const { content } = post.data;
 
   const contentData = content.map(ct => {
     return {
@@ -80,6 +144,20 @@ export default function Post({ post }: PostProps): JSX.Element {
     first_publication_date: format(
       new Date(post.first_publication_date),
       'd MMM yyyy',
+      {
+        locale: ptBR,
+      }
+    ),
+    last_publication_date: format(
+      new Date(post.last_publication_date),
+      'd MMM yyyy',
+      {
+        locale: ptBR,
+      }
+    ),
+    last_publication_hour: format(
+      new Date(post.last_publication_date),
+      'HH:mm',
       {
         locale: ptBR,
       }
@@ -175,6 +253,11 @@ export default function Post({ post }: PostProps): JSX.Element {
             </div>
           </div>
 
+          <div className={commonStyles.lastEditedStyle}>
+            * editado em {postData.last_publication_date}, às
+            {postData.last_publication_hour}
+          </div>
+
           <ul>
             {contentData.map((postContent, i) => (
               <li key={`postContent-${i}`} className={styles.contentContainer}>
@@ -186,11 +269,49 @@ export default function Post({ post }: PostProps): JSX.Element {
               </li>
             ))}
           </ul>
+
+          <footer className={styles.footerContainer}>
+            <hr className={styles.footerDivisor} />
+            <div
+              className={
+                prevPost
+                  ? styles.neighborPostsContainer
+                  : styles.neighborPostsContainerNoPrevious
+              }
+            >
+              {prevPost ? (
+                <Link href={`/post/${prevPost?.slug}`}>
+                  <div className={styles.previousPosts}>
+                    <span>{prevPost?.title}</span>
+                    <span className={styles.previousPost}>Post Anterior</span>
+                  </div>
+                </Link>
+              ) : (
+                ''
+              )}
+
+              {nextPost ? (
+                <Link href={`/post/${nextPost?.slug}`}>
+                  <div className={styles.nextPosts}>
+                    <span>{nextPost?.title}</span>
+                    <span className={styles.nextPost}>Próximo Post</span>
+                  </div>
+                </Link>
+              ) : (
+                ''
+              )}
+            </div>
+            <div id={commentNodeId} />
+            {preview && (
+              <aside className={styles.exitPreviewMode}>
+                <Link href="/api/exit-preview">
+                  <a>Sair do modo Preview</a>
+                </Link>
+              </aside>
+            )}
+          </footer>
         </article>
       </main>
-      <footer>
-        <div id={commentNodeId} />
-      </footer>
     </>
   );
 }
@@ -198,33 +319,89 @@ export default function Post({ post }: PostProps): JSX.Element {
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
   const posts = await prismic.query(
-    [Prismic.predicates.at('document.type', 'posts')],
+    Prismic.Predicates.at('document.type', 'posts'),
     {
-      fetch: ['posts.uid'],
+      orderings: '[document.first_publication_date]',
+      pageSize: 3,
     }
   );
 
+  const slugs = posts.results.reduce((arr, post) => {
+    arr.push(post.uid);
+
+    return arr;
+  }, []);
+
+  const params = slugs.map(slug => {
+    return {
+      params: { slug },
+    };
+  });
+
   return {
-    paths: [
-      { params: { slug: 'como-utilizar-hooks' } },
-      { params: { slug: 'criando-um-app-cra-do-zero' } },
-    ],
+    paths: params,
     fallback: true,
   };
 };
 
-export const getStaticProps: GetStaticProps = async context => {
+export const getStaticProps: GetStaticProps = async ({
+  params,
+  preview = false,
+}) => {
   const prismic = getPrismicClient();
-  const { slug } = context.params;
+  const { slug } = params;
 
   const response = await prismic.getByUID('posts', String(slug), {});
 
   const post = response;
 
+  // fetch next post data from prismic api
+  const nextPost = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      pageSize: 1,
+      orderings: '[document.first_publication_date]',
+      after: `${response.id}`,
+    }
+  );
+
+  // fetch previous post data from prismic api
+  const prevPost = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title'],
+      pageSize: 1,
+      orderings: '[document.first_publication_date desc]',
+      after: `${response.id}`,
+    }
+  );
+
+  // store in the const neighborsPosts conditionals for the objects
+  const neighborsPosts = {
+    prevPost:
+      prevPost.results_size > 0
+        ? {
+            title: prevPost.results[0].data.title,
+            slug: prevPost.results[0].uid,
+          }
+        : false,
+    nextPost:
+      nextPost.results_size > 0
+        ? {
+            title: nextPost.results[0].data.title,
+            slug: nextPost.results[0].uid,
+          }
+        : false,
+  };
+
+  console.log(neighborsPosts);
+
   return {
     props: {
       post,
+      neighborsPosts,
+      preview,
     },
-    revalidate: 1,
+    revalidate: 60 * 60, // 1 hour,
   };
 };

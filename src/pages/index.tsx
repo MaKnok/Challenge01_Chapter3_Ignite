@@ -139,7 +139,7 @@ export default function Home({
         )}
 
         {preview && (
-          <aside>
+          <aside className={styles.exitPreviewMode}>
             <Link href="/api/exit-preview">
               <a>Sair do modo Preview</a>
             </Link>
@@ -161,7 +161,7 @@ export const getStaticProps: GetStaticProps = async ({
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author', 'posts.content'],
       orderings: '[document.first_publication_date]',
-      pageSize: 1,
+      pageSize: 2,
       ref: previewData?.ref ?? null,
     }
   );

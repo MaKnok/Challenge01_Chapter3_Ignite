@@ -51,6 +51,26 @@
     border-width: 0;
 }
 
+.exitPreviewMode{
+  margin-top: 5.5rem;
+  margin-bottom: 6.625rem;
+  width: 43.75rem;
+  height: 3.625rem;
+  background-color: var(--gray-30);
+  cursor: pointer;
+  border-radius: 0.25rem;
+  
+  display:flex;
+  align-items: center;
+  justify-content:center;
+
+  a{
+    font: 600 1.125rem "Inter", sans-serif;
+    color: var(--gray-900);
+    text-decoration:none;
+  }
+}
+
 
 
 
